@@ -14,9 +14,9 @@ services:
       - ./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   catalog-service:
-    image: catalog-service:0.1
+    image: catalog-service
     container_name: polar-catalog-service
-    restart: always
+    #restart: always
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/polardb_catalog
     depends_on:
