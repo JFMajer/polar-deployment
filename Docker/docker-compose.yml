@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:15.2-alpine
+    container_name: polar-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - 5432:5432
+    networks:
+      - polar-network
+    volumes:
+      - ./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  catalog-service:
+    image: catalog-service:0.1
+    container_name: polar-catalog-service
+    restart: always
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/polardb_catalog
+    depends_on:
+      - db
+    ports:
+      - 8080:8080
+    networks:
+      - polar-network
+
+networks:
+  polar-network:
+    driver: bridge
