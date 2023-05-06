@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:15.2-alpine
+    image: postgres:15.2
     container_name: polar-postgres
     restart: always
     environment:
@@ -41,6 +41,42 @@ services:
       - 8090:8090
     networks:
       - polar-network
+
+  edge-service:
+    image: edge-service:0.0.1-SNAPSHOT
+    container_name: polar-edge-service
+    #restart: always
+    environment:
+      ORDER_SERVICE_URI: http://order-service:8090
+      CATALOG_SERVICE_URI: http://catalog-service:8080
+    depends_on:
+        - order-service
+        - catalog-service
+    ports:
+        - 9200:9200
+    networks:
+        - polar-network
+
+  polar-redis:
+    image: redis:7.2-rc1
+    container_name: polar-redis
+    restart: always
+    ports:
+      - 6379:6379
+    networks:
+        - polar-network
+
+
+# this container is for debugging purposes only
+#  ubuntu-curl:
+#    image: ubuntu:22.04
+#    container_name: ubuntu-curl
+#    command: sleep infinity
+#    tty: true
+#    stdin_open: true
+#    networks:
+#      - polar-network
+
 
 networks:
   polar-network:
