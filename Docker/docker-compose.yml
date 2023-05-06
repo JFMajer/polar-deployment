@@ -49,6 +49,7 @@ services:
     environment:
       ORDER_SERVICE_URI: http://order-service:8090
       CATALOG_SERVICE_URI: http://catalog-service:8080
+      REDIS_URI: polar-redis
     depends_on:
         - order-service
         - catalog-service
