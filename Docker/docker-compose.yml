@@ -70,7 +70,6 @@ services:
   polar-rabbitmq:
     image: rabbitmq:3.10.22-management
     container_name: polar-rabbitmq
-    restart: always
     ports:
       - 5672:5672
       - 15672:15672
