@@ -67,6 +67,18 @@ services:
     networks:
         - polar-network
 
+  polar-rabbitmq:
+    image: rabbitmq:3.10.22-management
+    container_name: polar-rabbitmq
+    restart: always
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+        - polar-network
+    volumes:
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+
 
 # this container is for debugging purposes only
 #  ubuntu-curl:
