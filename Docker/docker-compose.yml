@@ -93,6 +93,20 @@ services:
     volumes:
       - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
 
+  polar-keycloak:
+    image: quay.io/keycloak/keycloak:21.1.1
+    container_name: polar-keycloak
+    ports:
+      - 8080:8080
+    command: start-dev --import-realm
+    volumes:
+      - ./keycloak/:/opt/keycloak/data/import
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=password
+    networks:
+      - polar-network
+
 
 # this container is for debugging purposes only
 #  ubuntu-curl:
