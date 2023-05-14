@@ -22,7 +22,7 @@ services:
     depends_on:
       - db
     ports:
-      - 8080:8080
+      - 8081:8081
     networks:
       - polar-network
 
@@ -33,7 +33,7 @@ services:
     environment:
       SPRING_FLYWAY_URL: jdbc:postgresql://db:5432/polardb_order
       SPRING_R2DBC_URL: r2dbc:postgresql://db:5432/polardb_order
-      POLAR_CATALOG_SERVICE_URI: http://catalog-service:8080
+      POLAR_CATALOG_SERVICE_URI: http://catalog-service:8081
       RABBIT_URI: polar-rabbitmq
     depends_on:
       - db
@@ -50,7 +50,7 @@ services:
     #restart: always
     environment:
       ORDER_SERVICE_URI: http://order-service:8090
-      CATALOG_SERVICE_URI: http://catalog-service:8080
+      CATALOG_SERVICE_URI: http://catalog-service:8081
       REDIS_URI: polar-redis
     depends_on:
         - order-service
@@ -96,8 +96,6 @@ services:
   polar-keycloak:
     image: quay.io/keycloak/keycloak:21.1.1
     container_name: polar-keycloak
-    ports:
-      - 8080:8080
     command: start-dev --import-realm
     volumes:
       - ./keycloak/:/opt/keycloak/data/import
