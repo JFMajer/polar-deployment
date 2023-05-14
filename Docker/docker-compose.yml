@@ -34,9 +34,11 @@ services:
       SPRING_FLYWAY_URL: jdbc:postgresql://db:5432/polardb_order
       SPRING_R2DBC_URL: r2dbc:postgresql://db:5432/polardb_order
       POLAR_CATALOG_SERVICE_URI: http://catalog-service:8080
+      RABBIT_URI: polar-rabbitmq
     depends_on:
       - db
       - catalog-service
+      - polar-rabbitmq
     ports:
       - 8090:8090
     networks:
@@ -53,8 +55,21 @@ services:
     depends_on:
         - order-service
         - catalog-service
+        - polar-redis
     ports:
         - 9200:9200
+    networks:
+        - polar-network
+
+  dispatcher-service:
+    image: dispatcher-service:0.0.1-SNAPSHOT
+    depends_on:
+      - polar-rabbitmq
+    container_name: polar-dispatcher-service
+    environment:
+      RABBIT_URI: polar-rabbitmq
+    ports:
+      - 9003:9003
     networks:
         - polar-network
 
