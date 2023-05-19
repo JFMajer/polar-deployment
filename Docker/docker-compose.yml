@@ -8,8 +8,6 @@ services:
       POSTGRES_PASSWORD: password
     ports:
       - 5432:5432
-    networks:
-      - polar-network
     volumes:
       - ./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
 
@@ -23,8 +21,6 @@ services:
       - db
     ports:
       - 8081:8081
-    networks:
-      - polar-network
 
   order-service:
     image: order-service:0.0.1-SNAPSHOT
@@ -41,8 +37,6 @@ services:
       - polar-rabbitmq
     ports:
       - 8090:8090
-    networks:
-      - polar-network
 
   edge-service:
     image: edge-service:0.0.1-SNAPSHOT
@@ -52,7 +46,7 @@ services:
       ORDER_SERVICE_URI: http://order-service:8090
       CATALOG_SERVICE_URI: http://catalog-service:8081
       REDIS_URI: polar-redis
-      ISSUER_URI: http://polar-keycloak:8080/realms/PolarBookshop
+      #ISSUER_URI: http://polar-keycloak:8080/realms/PolarBookshop
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://host:docker:internal:8080/realms/PolarBookshop
       SPA_URI: http://polar-ui:9004
     depends_on:
@@ -61,8 +55,6 @@ services:
         - polar-keycloak
     ports:
         - 9200:9200
-    networks:
-        - polar-network
 
   dispatcher-service:
     image: dispatcher-service:0.0.1-SNAPSHOT
@@ -73,16 +65,12 @@ services:
       RABBIT_URI: polar-rabbitmq
     ports:
       - 9003:9003
-    networks:
-        - polar-network
 
   polar-redis:
     image: redis:7.2-rc2
     container_name: polar-redis
     ports:
       - 6379:6379
-    networks:
-        - polar-network
 
   polar-rabbitmq:
     image: rabbitmq:3.10.22-management
@@ -90,8 +78,6 @@ services:
     ports:
       - 5672:5672
       - 15672:15672
-    networks:
-        - polar-network
     volumes:
       - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
 
@@ -106,8 +92,6 @@ services:
       - KEYCLOAK_ADMIN_PASSWORD=password
     ports:
       - 8080:8080
-    networks:
-      - polar-network
 
   polar-ui:
     image: "ghcr.io/polarbookshop/polar-ui:v1"
@@ -127,8 +111,3 @@ services:
 #    stdin_open: true
 #    networks:
 #      - polar-network
-
-
-networks:
-  polar-network:
-    driver: bridge

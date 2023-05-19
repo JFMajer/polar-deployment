@@ -1,0 +1,29 @@
+name: Deploy eks cluster
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+
+jobs:
+  deploy-eks:
+    permissions:
+      id-token: write
+      contents: read
+    environment: dev
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "🎉 The job was triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - run: echo "💡 The ${{ github.repository }} repository is being cloned to the runner."
+      - uses: actions/checkout@v3
+      - name: list files
+        run: ls -la
+      - uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-session-name: ${{ secrets.AWS_ROLE_SESSION_NAME }}
+          aws-region: ${{ vars.AWS_REGION }}
