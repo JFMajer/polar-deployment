@@ -81,9 +81,40 @@ module "jump_host" {
   user_data = file("${path.module}/user_data.sh")
   user_data_replace_on_change = true
 
+  iam_instance_profile = aws_iam_instance_profile.jump_host.name
+
   cpu_core_count = 1
   cpu_threads_per_core = 1
 
+}
+
+resource "aws_iam_instance_profile" "jump_host" {
+  name = "${local.app_name}-jump-host-#{ENV}#"
+  role = aws_iam_role.jump_host.name
+}
+
+resource "aws_iam_role" "jump_host" {
+  name = "${local.app_name}-jump-host-#{ENV}#"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "jump_host" {
+  role       = aws_iam_role.jump_host.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 #module "eks" {
