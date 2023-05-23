@@ -69,7 +69,7 @@ module "jump_host" {
 
   ami = data.aws_ami.amazon_linux.id
   availability_zone = element(module.vpc.azs, 0)
-  subnet_id = element(module.vpc.private_subnets, 0)
+  subnet_id = element(module.vpc.public_subnets, 0)
 
   # Spot request specific attributes
   spot_price                          = "0.1"
@@ -85,6 +85,10 @@ module "jump_host" {
 
   cpu_core_count = 1
   cpu_threads_per_core = 1
+
+  tags = {
+    Name = "${local.app_name}-jump-host-#{ENV}#"
+  }
 
 }
 
