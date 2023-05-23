@@ -13,12 +13,23 @@ provider "aws" {
 
 data "aws_availability_zones" "available" {}
 
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn-ami-hvm-*-x86_64-gp2"]
+  }
+}
+
 locals {
   app_name = "polar"
   vpc_cidr = "10.23.0.0/16"
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
 }
 
+//noinspection MissingModule
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
   version = "4.0.2"
@@ -50,3 +61,39 @@ module "vpc" {
   }
 
 }
+
+//noinspection MissingModule
+module "jump_host" {
+  source  = "terraform-aws-modules/ec2-instance/aws"
+  version = "~> 5.0"
+
+  ami = data.aws_ami.amazon_linux.id
+  availability_zone = element(module.vpc.azs, 0)
+  subnet_id = element(module.vpc.private_subnets, 0)
+
+  # Spot request specific attributes
+  spot_price                          = "0.1"
+  spot_wait_for_fulfillment           = true
+  spot_type                           = "persistent"
+  spot_instance_interruption_behavior = "terminate"
+  # End spot request specific attributes
+
+  user_data = file("${path.module}/user_data.sh")
+  user_data_base64 = false
+  user_data_replace_on_change = true
+
+  cpu_core_count = 1
+
+
+}
+
+#module "eks" {
+#  source  = "terraform-aws-modules/eks/aws"
+#  version = "~> 19.0"
+#
+#  cluster_name = "${local.app_name}-eks-#{ENV}#"
+#  cluster_version = "1.25"
+#
+#  vpc_id = module.vpc.vpc_id
+#  subnets = module.vpc.private_subnets
+#}
