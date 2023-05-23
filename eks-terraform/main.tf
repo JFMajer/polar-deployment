@@ -14,7 +14,9 @@ provider "aws" {
 data "aws_availability_zones" "available" {}
 
 locals {
+  azs = slice(data.aws_availability_zones.available.names, 0, 3)
   app_name = "polar"
+  vpc_cidr = "10.0.23.0/16"
 }
 
 module "vpc" {
@@ -29,11 +31,10 @@ module "vpc" {
 
   name = "${local.app_name}-vpc-#{ENV}#"
 
-  cidr = "10.0.0.0/16"
-  azs  = slice(data.aws_availability_zones.available.names, 0, 3)
-
-  private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
-  public_subnets  = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+  private_subnets     = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k)]
+  public_subnets      = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 4)]
+  database_subnets    = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 8)]
+  elasticache_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 12)]
 
   public_subnet_tags = {
     "kubernetes.io/cluster/${var.cluster_name}" = "shared"
