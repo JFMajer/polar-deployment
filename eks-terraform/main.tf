@@ -67,9 +67,12 @@ module "jump_host" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "~> 5.0"
 
+  associate_public_ip_address = true
+
   ami = data.aws_ami.amazon_linux.id
   availability_zone = element(module.vpc.azs, 0)
   subnet_id = element(module.vpc.public_subnets, 0)
+  vpc_security_group_ids = [aws_security_group.jump_host_sg.id]
 
   # Spot request specific attributes
   spot_price                          = "0.1"
@@ -119,6 +122,29 @@ EOF
 resource "aws_iam_role_policy_attachment" "jump_host" {
   role       = aws_iam_role.jump_host.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_security_group" "jump_host_sg" {
+  name        = "${local.app_name}-jump-host-#{ENV}#"
+  description = "Security group for jump host"
+
+  vpc_id = module.vpc.vpc_id
+
+  ingress {
+    description = "SSH from anywhere"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+}
+
+      egress {
+     description = "Allow all outbound traffic"
+     from_port   = 0
+     to_port     = 0
+     protocol    = "-1"
+     cidr_blocks = ["0.0.0.0/0"]
+    }
 }
 
 #module "eks" {
