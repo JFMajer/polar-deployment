@@ -138,13 +138,59 @@ resource "aws_security_group" "jump_host_sg" {
     }
 }
 
-#module "eks" {
-#  source  = "terraform-aws-modules/eks/aws"
-#  version = "~> 19.0"
-#
-#  cluster_name = "${local.app_name}-eks-#{ENV}#"
-#  cluster_version = "1.25"
-#
-#  vpc_id = module.vpc.vpc_id
-#  subnets = module.vpc.private_subnets
-#}
+//noinspection MissingModule
+module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "~> 19.0"
+
+  cluster_name = "${local.app_name}-eks-#{ENV}#"
+  cluster_version = "1.25"
+
+  vpc_id = module.vpc.vpc_id
+  subnet_ids                     = module.vpc.private_subnets
+
+
+  eks_managed_node_group_defaults = {
+    ami_type = "AL2_x86_64"
+
+  }
+
+  eks_managed_node_groups = {
+    one = {
+      name = "node-group-1"
+
+      instance_types = ["t3.small"]
+
+      min_size     = 1
+      max_size     = 3
+      desired_size = 2
+    }
+  }
+}
+
+data "aws_iam_policy" "ebs_csi_policy" {
+  arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+}
+
+//noinspection MissingModule
+module "irsa-ebs-csi" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
+  version = "4.7.0"
+
+  create_role                   = true
+  role_name                     = "AmazonEKSTFEBSCSIRole-${module.eks.cluster_name}"
+  provider_url                  = module.eks.oidc_provider
+  role_policy_arns              = [data.aws_iam_policy.ebs_csi_policy.arn]
+  oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
+}
+
+resource "aws_eks_addon" "ebs-csi" {
+  cluster_name             = module.eks.cluster_name
+  addon_name               = "aws-ebs-csi-driver"
+  addon_version            = "v1.5.2-eksbuild.1"
+  service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
+  tags = {
+    "eks_addon" = "ebs-csi"
+    "terraform" = "true"
+  }
+}
