@@ -79,7 +79,6 @@ module "jump_host" {
   # End spot request specific attributes
 
   user_data = file("${path.module}/user_data.sh")
-  user_data_base64 = false
   user_data_replace_on_change = true
 
   cpu_core_count = 1
