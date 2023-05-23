@@ -5,6 +5,12 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      destruction:
+        description: 'Destroy the cluster'
+        required: false
+        default: false
+        type: boolean
 
 
 jobs:
@@ -13,6 +19,8 @@ jobs:
       id-token: write
       contents: read
     environment: dev
+    env:
+      WORKING_DIR: eks-terraform
     runs-on: ubuntu-latest
     steps:
       - run: echo "🎉 The job was triggered by a ${{ github.event_name }} event."
@@ -22,6 +30,14 @@ jobs:
       - uses: actions/checkout@v3
       - name: list files
         run: ls -la
+      - uses: cschleiden/replace-tokens@v1
+        with:
+          files: '["**/*.tf"]'
+        env:
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          DYNAMO_TABLE: ${{ secrets.DYNAMO_TABLE }}
+          ENV: ${{ vars.ENV }}
       - uses: hashicorp/setup-terraform@v2
       - uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -29,4 +45,19 @@ jobs:
           role-session-name: ${{ secrets.AWS_ROLE_SESSION_NAME }}
           aws-region: ${{ vars.AWS_REGION }}
       - name: terraform init
+        working-directory: ${{ env.WORKING_DIR }}
         run: terraform init
+      - name: terraform plan
+        working-directory: ${{ env.WORKING_DIR }}
+        run: terraform plan -out=plan.out
+      - name: Terraform Apply
+        if: ${{ github.event.inputs.destruction != 'true' }}
+        working-directory: ${{ env.WORKING_DIR }}
+        run: terraform apply plan.out
+      - name: Terraform Destroy
+        working-directory: ${{ env.WORKING_DIR }}
+        run: terraform destroy -auto-approve
+        if: ${{ github.event.inputs.destruction == 'true' }}
+      - name: Terraform Output
+        working-directory: ${{ env.WORKING_DIR }}
+        run: terraform output -json
