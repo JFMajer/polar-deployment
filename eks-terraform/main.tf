@@ -82,7 +82,7 @@ module "jump_host" {
   user_data_replace_on_change = true
 
   cpu_core_count = 1
-
+  cpu_threads_per_core = 1
 
 }
 
