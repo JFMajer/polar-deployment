@@ -16,13 +16,14 @@ data "aws_availability_zones" "available" {}
 locals {
   app_name = "polar"
   vpc_cidr = "10.0.23.0/16"
+  azs      = slice(data.aws_availability_zones.available.names, 0, 3)
 }
 
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
   version = "4.0.2"
 
-  azs  = slice(data.aws_availability_zones.available.names, 0, 3)
+  azs  = local.azs
 
   enable_nat_gateway = true
   single_nat_gateway = true
@@ -31,9 +32,10 @@ module "vpc" {
   enable_dns_hostnames = true
 
   name = "${local.app_name}-vpc-#{ENV}#"
+  cidr = local.vpc_cidr
 
-  private_subnets     = [for k, v in azs : cidrsubnet(local.vpc_cidr, 8, k)]
-  public_subnets      = [for k, v in azs : cidrsubnet(local.vpc_cidr, 8, k + 4)]
+  private_subnets     = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k)]
+  public_subnets      = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 4)]
 #  database_subnets    = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 8)]
 #  elasticache_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 12)]
 
