@@ -14,7 +14,6 @@ provider "aws" {
 data "aws_availability_zones" "available" {}
 
 locals {
-  azs = slice(data.aws_availability_zones.available.names, 0, 3)
   app_name = "polar"
   vpc_cidr = "10.0.23.0/16"
 }
@@ -22,6 +21,8 @@ locals {
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
   version = "4.0.2"
+
+  azs  = slice(data.aws_availability_zones.available.names, 0, 3)
 
   enable_nat_gateway = true
   single_nat_gateway = true
