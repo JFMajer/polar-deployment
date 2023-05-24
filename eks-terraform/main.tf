@@ -166,6 +166,13 @@ module "eks" {
     vpc-cni = {
       most_recent = true
       service_account_role_arn = module.vpc_cni_irsa.iam_role_arn
+      configuration_values = jsonencode({
+        env = {
+          # Reference docs https://docs.aws.amazon.com/eks/latest/userguide/cni-increase-ip-addresses.html
+          ENABLE_PREFIX_DELEGATION = "true"
+          WARM_PREFIX_TARGET       = "1"
+        }
+      })
     }
   }
 
@@ -189,26 +196,6 @@ module "eks" {
     AmazonEC2ContainerRegistryReadOnly = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
     additional                         = aws_iam_policy.node_additional.arn
   }
-
-#  aws_auth_users = [
-#    {
-#      userarn  = "arn:aws:iam::66666666666:user/user1"
-#      username = "user1"
-#      groups   = ["system:masters"]
-#    },
-#    {
-#      userarn  = "arn:aws:iam::66666666666:user/user2"
-#      username = "user2"
-#      groups   = ["system:masters"]
-#    },
-#  ]
-#
-#  aws_auth_accounts = [
-#    "777777777777",
-#    "888888888888",
-#  ]
-
-
 
 
   eks_managed_node_group_defaults = {
@@ -241,6 +228,24 @@ module "eks" {
     }
   }
 
+}
+
+resource "aws_iam_policy" "node_additional" {
+  name        = "node-additional-${local.app_name}-eks-#{ENV}#"
+  description = "Example usage of node additional policy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "ec2:Describe*",
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+    ]
+  })
 }
 
 // create role that creates EKS cluster but can also be assumed by jump host
