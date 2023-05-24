@@ -183,6 +183,11 @@ module "eks" {
       username = "role1"
       groups   = ["system:masters"]
     },
+    {
+      rolearn  = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/bar"
+      username = "sso-readall:{{SessionName}}"
+      groups   = ["sso-readall"]
+    },
   ]
 
 #  aws_auth_users = [
