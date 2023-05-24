@@ -242,6 +242,8 @@ resource "aws_iam_role" "eks_cluster" {
     }
   ]
 }
+EOF
+}
 
 //noinspection MissingModule
 module "vpc_cni_irsa" {
