@@ -184,24 +184,9 @@ module "eks" {
 
   manage_aws_auth_configmap = true
 
-
-  create_iam_role          = true
-  iam_role_name            = "eks-managed-node-group-complete-example"
-  iam_role_use_name_prefix = false
-  iam_role_description     = "EKS managed node group complete example role"
-  iam_role_tags = {
-    Purpose = "Protector of the kubelet"
-  }
-  iam_role_additional_policies = {
-    AmazonEC2ContainerRegistryReadOnly = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-    additional                         = aws_iam_policy.node_additional.arn
-  }
-
-
   eks_managed_node_group_defaults = {
     ami_type = "AL2_x86_64"
     iam_role_attach_cni_policy = true
-
   }
 
   eks_managed_node_groups = {
@@ -213,39 +198,9 @@ module "eks" {
       min_size     = 1
       max_size     = 3
       desired_size = 2
-
-      create_iam_role          = true
-      iam_role_name            = "eks-managed-node-group-complete-example"
-      iam_role_use_name_prefix = false
-      iam_role_description     = "EKS managed node group complete example role"
-      iam_role_tags = {
-        Purpose = "Protector of the kubelet"
-      }
-      iam_role_additional_policies = {
-        AmazonEC2ContainerRegistryReadOnly = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-        additional                         = aws_iam_policy.node_additional.arn
-      }
     }
   }
 
-}
-
-resource "aws_iam_policy" "node_additional" {
-  name        = "node-additional-${local.app_name}-eks-#{ENV}#"
-  description = "Example usage of node additional policy"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "ec2:Describe*",
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
-    ]
-  })
 }
 
 
@@ -266,3 +221,4 @@ module "vpc_cni_irsa" {
   }
 
 }
+
