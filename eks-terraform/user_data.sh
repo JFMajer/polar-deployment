@@ -19,3 +19,9 @@ unzip awscliv2.zip && ./aws/install
 curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.25.9/2023-05-11/bin/linux/amd64/kubectl
 chmod +x ./kubectl
 mv ./kubectl /usr/local/bin/kubectl
+
+# store cluster name in env variable
+echo "export CLUSTER_NAME=$(aws eks list-clusters --output text --query 'clusters[0]')" >> /etc/bashrc
+
+#create kubeconfig command and store it in the file in home directory
+aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_REGION >> /home/ssm-user/update_kubeconfig_command.txt
