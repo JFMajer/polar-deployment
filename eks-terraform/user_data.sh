@@ -1,14 +1,17 @@
 #!/bin/bash
 
+# update
+yum update -y
+
+#install jq
+yum install -y jq
+
 # enable ssm agent
 echo "export AWS_REGION=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)" >> /etc/bashrc
 echo "export AWS_DEFAULT_REGION=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)" >> /etc/bashrc
 yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
 systemctl enable amazon-ssm-agent
 systemctl start amazon-ssm-agent
-
-# update
-yum update -y
 
 # install aws cli
 yum install -y unzip
@@ -21,7 +24,8 @@ chmod +x ./kubectl
 mv ./kubectl /usr/local/bin/kubectl
 
 # store cluster name in env variable
-echo "export CLUSTER_NAME=$(aws eks list-clusters --output text --query 'clusters[0]')" >> /etc/bashrc
+export CLUSTER_NAME=$(aws eks list-clusters --output text --query 'clusters[0]')
 
 #create kubeconfig command and store it in the file in home directory
+export AWS_REGION=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)
 aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_REGION >> /home/ssm-user/update_kubeconfig_command.txt

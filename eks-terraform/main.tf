@@ -162,7 +162,36 @@ module "eks" {
   vpc_id = module.vpc.vpc_id
   subnet_ids                     = module.vpc.private_subnets
 
-  # manage_aws_auth_configmap = true
+  manage_aws_auth_configmap = true
+
+  aws_auth_roles = [
+    {
+      rolearn  = aws_iam_role.eks_cluster.arn
+      username = "role1"
+      groups   = ["system:masters"]
+    },
+  ]
+
+#  aws_auth_users = [
+#    {
+#      userarn  = "arn:aws:iam::66666666666:user/user1"
+#      username = "user1"
+#      groups   = ["system:masters"]
+#    },
+#    {
+#      userarn  = "arn:aws:iam::66666666666:user/user2"
+#      username = "user2"
+#      groups   = ["system:masters"]
+#    },
+#  ]
+#
+#  aws_auth_accounts = [
+#    "777777777777",
+#    "888888888888",
+#  ]
+
+
+
 
   eks_managed_node_group_defaults = {
     ami_type = "AL2_x86_64"
@@ -193,6 +222,25 @@ module "eks" {
       }
     }
   }
+
+}
+
+// create role that creates EKS cluster
+resource "aws_iam_role" "eks_cluster" {
+  name = "${local.app_name}-eks-cluster-#{ENV}#"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "eks.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
 }
 
 //noinspection MissingModule
