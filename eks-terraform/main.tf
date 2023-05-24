@@ -19,7 +19,7 @@ provider "kubernetes" {
     api_version = "client.authentication.k8s.io/v1beta1"
     command     = "aws"
     # This requires the awscli to be installed locally where Terraform is executed
-    args = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
+    args = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--region", "eu-north-1"]
   }
 }
 
@@ -182,11 +182,6 @@ module "eks" {
       rolearn  = aws_iam_role.eks_cluster.arn
       username = "role1"
       groups   = ["system:masters"]
-    },
-    {
-      rolearn  = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/bar"
-      username = "sso-readall:{{SessionName}}"
-      groups   = ["sso-readall"]
     },
   ]
 
