@@ -143,54 +143,91 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 19.0"
 
+  cluster_addons = {
+    coredns = {
+      most_recent = true
+    }
+    kube-proxy = {
+      most_recent = true
+    }
+    vpc-cni = {
+      most_recent = true
+      service_account_role_arn = module.vpc_cni_irsa.iam_role_arn
+    }
+  }
+
   cluster_name = "${local.app_name}-eks-#{ENV}#"
   cluster_version = "1.25"
 
   vpc_id = module.vpc.vpc_id
   subnet_ids                     = module.vpc.private_subnets
 
+  manage_aws_auth_configmap = true
 
   eks_managed_node_group_defaults = {
     ami_type = "AL2_x86_64"
+    iam_role_attach_cni_policy = true
 
   }
 
   eks_managed_node_groups = {
     one = {
       name = "node-group-1"
-
+      capacity_type = "SPOT"
       instance_types = ["t3.small"]
 
       min_size     = 1
       max_size     = 3
       desired_size = 2
     }
-  }
-}
 
-data "aws_iam_policy" "ebs_csi_policy" {
-  arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+    create_iam_role          = true
+    iam_role_name            = "eks-managed-node-group-complete-example"
+    iam_role_use_name_prefix = false
+    iam_role_description     = "EKS managed node group complete example role"
+    iam_role_tags = {
+      Purpose = "Protector of the kubelet"
+    }
+    iam_role_additional_policies = {
+      AmazonEC2ContainerRegistryReadOnly = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+      additional                         = aws_iam_policy.node_additional.arn
+    }
+  }
 }
 
 //noinspection MissingModule
-module "irsa-ebs-csi" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
-  version = "4.7.0"
+module "vpc_cni_irsa" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "~> 5.0"
 
-  create_role                   = true
-  role_name                     = "AmazonEKSTFEBSCSIRole-${module.eks.cluster_name}"
-  provider_url                  = module.eks.oidc_provider
-  role_policy_arns              = [data.aws_iam_policy.ebs_csi_policy.arn]
-  oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
+  role_name_prefix      = "VPC-CNI-IRSA"
+  attach_vpc_cni_policy = true
+  vpc_cni_enable_ipv6   = true
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:aws-node"]
+    }
+  }
+
 }
 
-resource "aws_eks_addon" "ebs-csi" {
-  cluster_name             = module.eks.cluster_name
-  addon_name               = "aws-ebs-csi-driver"
-  addon_version            = "v1.5.2-eksbuild.1"
-  service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
-  tags = {
-    "eks_addon" = "ebs-csi"
-    "terraform" = "true"
-  }
+
+resource "aws_iam_policy" "node_additional" {
+  name        = "node-additional-example"
+  description = "Example usage of node additional policy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "ec2:Describe*",
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+    ]
+  })
 }
