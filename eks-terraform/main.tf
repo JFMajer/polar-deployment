@@ -11,6 +11,21 @@ provider "aws" {
   }
 }
 
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+
+  exec {
+    api_version = "client.authentication.k8s.io/v1alpha1"
+    command     = "aws"
+    # This requires the awscli to be installed locally where Terraform is executed
+    args = ["eks", "get-token", "--cluster-name", module.eks.cluster_id]
+  }
+}
+
+data "aws_caller_identity" "current" {}
+
+
 data "aws_availability_zones" "available" {}
 
 data "aws_ami" "amazon_linux" {
@@ -225,24 +240,79 @@ module "eks" {
 
 }
 
-// create role that creates EKS cluster
+// create role that creates EKS cluster but can also be assumed by jump host
 resource "aws_iam_role" "eks_cluster" {
   name = "${local.app_name}-eks-cluster-#{ENV}#"
   assume_role_policy = <<EOF
 {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "",
+            "Effect": "Allow",
+            "Principal": {
+                "Service": [
+                    "eks.amazonaws.com",
+                    "ec2.amazonaws.com"
+                ]
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+}
+EOF
+}
+
+// create policy that allows EKS cluster creation
+resource "aws_iam_policy" "eks_cluster" {
+  name = "${local.app_name}-eks-cluster-#{ENV}#"
+  policy = <<EOF
+{
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "eks.amazonaws.com"
-      },
+      "Action": [
+        "autoscaling:DescribeAutoScalingGroups",
+        "autoscaling:DescribeLaunchConfigurations",
+        "autoscaling:DescribeTags",
+        "ec2:DescribeInstances",
+        "ec2:DescribeLaunchTemplates",
+        "ec2:DescribeRegions",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeVolumes",
+        "ec2:DescribeVpcs",
+        "eks:DescribeFargateProfile",
+        "eks:DescribeNodegroup",
+        "eks:DescribeUpdate",
+        "eks:DescribeCluster",
+        "eks:ListClusters",
+        "eks:ListFargateProfiles",
+        "eks:ListNodegroups",
+        "eks:ListUpdates",
+        "eks:ListTagsForResource",
+        "iam:GetRole",
+        "iam:GetRolePolicy",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListRolePolicies",
+        "iam:ListRoles",
+        "logs:DescribeLogGroups",
+        "logs:DescribeLogStreams",
+        "logs:GetLogEvents",
+        "logs:FilterLogEvents"
+      ],
       "Effect": "Allow",
-      "Sid": ""
+      "Resource": "*"
     }
   ]
 }
 EOF
+}
+
+// attach policy to role
+resource "aws_iam_role_policy_attachment" "eks_cluster" {
+  role       = aws_iam_role.eks_cluster.name
+  policy_arn = aws_iam_policy.eks_cluster.arn
 }
 
 //noinspection MissingModule
