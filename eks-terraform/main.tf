@@ -188,6 +188,7 @@ module "eks" {
     }
     vpc-cni = {
       most_recent = true
+      before_compute = true
       service_account_role_arn = module.vpc_cni_irsa.iam_role_arn
       configuration_values = jsonencode({
         env = {
@@ -211,6 +212,11 @@ module "eks" {
     {
       role_arn = aws_iam_role.jump_host.arn
       username = "jump_host"
+      groups   = ["system:masters"]
+    },
+    {
+      role_arn = "#{CONSOLE_ROLE_ARN}#"
+      username = "console"
       groups   = ["system:masters"]
     },
     ]
@@ -260,5 +266,6 @@ resource "aws_security_group_rule" "jump-host-to-eks-control-plane" {
   protocol          = "tcp"
   security_group_id = module.eks.cluster_security_group_id
   source_security_group_id = aws_security_group.jump_host_sg.id
+  description = "Allow jump host to access EKS control plane"
 }
 
