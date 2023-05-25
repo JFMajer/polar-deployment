@@ -265,13 +265,13 @@ module "vpc_cni_irsa" {
 
 }
 
-resource "aws_security_group_rule" "jump-host-to-eks-control-plane" {
-  type              = "ingress"
-  from_port         = 443
-  to_port           = 443
-  protocol          = "tcp"
-  security_group_id = module.eks.cluster_security_group_id
-  source_security_group_id = aws_security_group.jump_host_sg.id
-  description = "Allow jump host to access EKS control plane"
-}
+#resource "aws_security_group_rule" "jump-host-to-eks-control-plane" {
+#  type              = "ingress"
+#  from_port         = 443
+#  to_port           = 443
+#  protocol          = "tcp"
+#  security_group_id = module.eks.cluster_security_group_id
+#  source_security_group_id = aws_security_group.jump_host_sg.id
+#  description = "Allow jump host to access EKS control plane"
+#}
 
