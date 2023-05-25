@@ -208,6 +208,14 @@ module "eks" {
 
   manage_aws_auth_configmap = true
 
+  aws_auth_roles = [
+    {
+      role_arn = aws_iam_role.jump_host.arn
+      username = "jump_host"
+      groups   = ["system:masters"]
+    },
+    ]
+
   eks_managed_node_group_defaults = {
     ami_type = "AL2_x86_64"
     iam_role_attach_cni_policy = true
