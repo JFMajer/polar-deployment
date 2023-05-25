@@ -87,9 +87,8 @@ module "jump_host" {
   vpc_security_group_ids = [aws_security_group.jump_host_sg.id]
 
   # Spot request specific attributes
-  spot_price                          = "0.1"
+  spot_price                          = "0.03"
   spot_wait_for_fulfillment           = true
-  spot_type                           = "persistent"
   spot_instance_interruption_behavior = "terminate"
   # End spot request specific attributes
 
