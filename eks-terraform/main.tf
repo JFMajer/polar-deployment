@@ -107,7 +107,7 @@ module "jump_host" {
 }
 
 resource "aws_iam_instance_profile" "jump_host" {
-  name = "${local.app_name}-jump-host-#{ENV}#"
+  name = "${local.app_name}-jump-host2-#{ENV}#"
   role = aws_iam_role.jump_host.name
 }
 
