@@ -177,31 +177,23 @@ resource "aws_security_group" "jump_host_sg" {
 //noinspection MissingModule
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 19.0"
+  version = "~> 18.0"
 
   cluster_addons = {
     coredns = {
-      most_recent = true
+      resolve_conflicts = "OVERWRITE"
     }
-    kube-proxy = {
-      most_recent = true
-    }
+    kube-proxy = {}
     vpc-cni = {
-      most_recent = true
-      before_compute = true
+      resolve_conflicts        = "OVERWRITE"
       service_account_role_arn = module.vpc_cni_irsa.iam_role_arn
-      configuration_values = jsonencode({
-        env = {
-          # Reference docs https://docs.aws.amazon.com/eks/latest/userguide/cni-increase-ip-addresses.html
-          ENABLE_PREFIX_DELEGATION = "true"
-          WARM_PREFIX_TARGET       = "1"
-        }
-      })
     }
   }
 
   cluster_name = "${local.app_name}-eks-#{ENV}#"
   cluster_version = "1.25"
+  cluster_endpoint_private_access = true
+  cluster_endpoint_public_access  = true
 
   vpc_id = module.vpc.vpc_id
   subnet_ids                     = module.vpc.private_subnets
@@ -227,7 +219,10 @@ module "eks" {
   }
 
   eks_managed_node_groups = {
-    one = {
+    default_node_group = {
+      create_launch_template = false
+      launch_template_name   = ""
+
       name = "node-group-1"
       capacity_type = "SPOT"
       instance_types = ["t3.small"]
@@ -235,6 +230,17 @@ module "eks" {
       min_size     = 1
       max_size     = 3
       desired_size = 2
+
+      create_iam_role          = true
+      iam_role_name            = "eks-managed-node-group-complete-example"
+      iam_role_use_name_prefix = false
+      iam_role_description     = "EKS managed node group complete example role"
+      iam_role_tags = {
+        Purpose = "Protector of the kubelet"
+      }
+      iam_role_additional_policies = [
+        "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+      ]
     }
   }
 

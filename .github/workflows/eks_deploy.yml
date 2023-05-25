@@ -62,6 +62,7 @@ jobs:
       - name: remove kms keys with specific aliases using aws cli
         if: ${{ github.event.inputs.destruction == 'true' }}
         run: |
+          aws iam delete-instance-profile --instance-profile-name polar-bookstore-jump-host-dev
           aws kms delete-alias --alias-name alias/eks/polar-eks-dev
           aws kms delete-alias --alias-name alias/eks/polar-bookstore-eks-dev
           aws kms schedule-key-deletion --key-id 564f323b-c850-46aa-a5a2-0806b5a47a00 --pending-window-in-days 7
