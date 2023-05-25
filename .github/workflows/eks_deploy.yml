@@ -62,8 +62,8 @@ jobs:
       - name: remove kms keys with specific aliases using aws cli
         if: ${{ github.event.inputs.destruction == 'true' }}
         run: |
-          aws kms delete-alias --alias-name eks/polar-eks-dev
-          aws kms delete-alias --alias-name eks/polar-bookstore-eks-dev
+          aws kms delete-alias --alias-name alias/eks/polar-eks-dev
+          aws kms delete-alias --alias-name alias/eks/polar-bookstore-eks-dev
           aws kms schedule-key-deletion --key-id 564f323b-c850-46aa-a5a2-0806b5a47a00 --pending-window-in-days 7
           aws kms schedule-key-deletion --key-id 8a4e609f-9b5d-4d75-a346-0a49575d6504 --pending-window-in-days 7
       - name: Terraform Output
