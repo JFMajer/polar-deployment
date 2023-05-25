@@ -59,6 +59,10 @@ jobs:
         working-directory: ${{ env.WORKING_DIR }}
         run: terraform destroy -auto-approve
         if: ${{ github.event.inputs.destruction == 'true' }}
+      - name: remove kms keys with specific aliases using aws cli
+        if: ${{ github.event.inputs.destruction == 'true' }}
+        run: |
+          aws kms list-aliases --query 'Aliases[?contains(AliasName, `polar-eks-`)].AliasName' --output text | xargs -I {} aws kms schedule-key-deletion --key-id {} --pending-window-in-days 7
       - name: Terraform Output
         working-directory: ${{ env.WORKING_DIR }}
         run: terraform output -json
