@@ -131,9 +131,34 @@ resource "aws_iam_role" "jump_host" {
 EOF
 }
 
+// create policy for jump host to allow all operations on EKS
+resource "aws_iam_policy" "jump_host" {
+  name = "${local.app_name}-jump-host-eks-policy-#{ENV}#"
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "eks:*"
+            ],
+            "Effect": "Allow",
+            "Resource": "*"
+        }
+    ]
+}
+EOF
+}
+
 resource "aws_iam_role_policy_attachment" "jump_host" {
+  for_each = toset([
+  aws_iam_policy.jump_host.arn,
+  "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+    ])
+
+
   role       = aws_iam_role.jump_host.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  policy_arn = each.value
 }
 
 resource "aws_security_group" "jump_host_sg" {
