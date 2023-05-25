@@ -37,7 +37,7 @@ data "aws_ami" "amazon_linux" {
 }
 
 locals {
-  app_name = "polar"
+  app_name = "polar-bookstore"
   vpc_cidr = "10.23.0.0/16"
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
 }
@@ -112,7 +112,7 @@ resource "aws_iam_instance_profile" "jump_host" {
 }
 
 resource "aws_iam_role" "jump_host" {
-  name = "${local.app_name}-jump-host-#{ENV}#"
+  name = "${local.app_name}-jump-host-role-#{ENV}#"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
