@@ -150,14 +150,13 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "jump_host" {
-  for_each = toset([
-  aws_iam_policy.jump_host.arn,
-  "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-    ])
-
-
   role       = aws_iam_role.jump_host.name
-  policy_arn = each.value
+  policy_arn = aws_iam_policy.jump_host.arn
+}
+
+resource "aws_iam_role_policy_attachment" "jump_host_ssm" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role       = aws_iam_role.jump_host.name
 }
 
 resource "aws_security_group" "jump_host_sg" {
