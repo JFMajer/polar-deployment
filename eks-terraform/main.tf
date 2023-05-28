@@ -273,6 +273,14 @@ module "eks" {
       max_size     = 3
       desired_size = 2
 
+      taints = [
+        {
+          key    = "os"
+          value  = "bottlerocket"
+          effect = "PREFER_NO_SCHEDULE"
+        }
+      ]
+
       bottlerocket_add = {
         ami_type = "BOTTLEROCKET_x86_64"
         platform = "bottlerocket"
