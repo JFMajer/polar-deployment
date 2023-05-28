@@ -275,32 +275,22 @@ resource "aws_security_group_rule" "jump-host-to-eks-control-plane" {
   description = "Allow jump host to access EKS control plane"
 }
 
-// create kubernetes admin role
-resource "kubernetes_role" "admin" {
-  metadata {
-    name = "admin"
-  }
-  rule {
-    api_groups = [""]
-    resources = ["*"]
-    verbs = ["*"]
-  }
-}
+//noinspection MissingModule
+module "eks_auth" {
+  source = "aidanmelen/eks-auth/aws"
+  eks = module.eks
 
-// create kubernetes admin role binding
-resource "kubernetes_role_binding" "admin" {
-  metadata {
-    name = "admin"
-  }
-  role_ref {
-    api_group = "rbac.authorization.k8s.io"
-    kind = "Role"
-    name = "admin"
-  }
-  subject {
-    kind = "User"
-    name = "console"
-  }
+  map_roles = [
+    {
+      rolearn = aws_iam_role.jump_host.arn
+      username = "jump_host"
+      groups = ["system:masters"]
+    },
+    {
+      rolearn = "#{CONSOLE_ROLE_ARN}#"
+      username = "console"
+      groups = ["system:masters"]
+    },
+  ]
 }
-
 
