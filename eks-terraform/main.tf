@@ -189,7 +189,7 @@ module "eks" {
   ]
 
   # define retention in days for CloudWatch Logs
-  cloudwatch_log_retention_period = 1
+  cloudwatch_log_group_retention_in_days = 2
 
   cluster_addons = {
     coredns = {
