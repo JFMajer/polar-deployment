@@ -73,6 +73,8 @@ jobs:
       - name: configure kubectl
         working-directory: ${{ env.WORKING_DIR }}
         run: |
+          export CLUSTER_NAME=$(aws eks list-clusters --output text --query 'clusters[0]')
+          export AWS_REGION=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)
           aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_REGION
       - name: show auth-map
         run: kubectl describe configmap -n kube-system aws-auth
