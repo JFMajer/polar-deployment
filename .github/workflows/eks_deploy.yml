@@ -50,7 +50,7 @@ jobs:
         run: terraform init
       - name: terraform plan
         working-directory: ${{ env.WORKING_DIR }}
-        run: terraform plan -out=plan.out -replace="module.eks_auth[0]"
+        run: terraform plan -out=plan.out -replace="module.eks_auth.kubernetes_config_map_v1_data.aws_auth[0]"
       - name: Terraform Apply
         if: ${{ github.event.inputs.destruction != 'true' }}
         working-directory: ${{ env.WORKING_DIR }}
