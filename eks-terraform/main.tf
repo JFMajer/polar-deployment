@@ -275,3 +275,32 @@ resource "aws_security_group_rule" "jump-host-to-eks-control-plane" {
   description = "Allow jump host to access EKS control plane"
 }
 
+// create kubernetes admin role
+resource "kubernetes_role" "admin" {
+  metadata {
+    name = "admin"
+  }
+  rule {
+    api_groups = [""]
+    resources = ["*"]
+    verbs = ["*"]
+  }
+}
+
+// create kubernetes admin role binding
+resource "kubernetes_role_binding" "admin" {
+  metadata {
+    name = "admin"
+  }
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind = "Role"
+    name = "admin"
+  }
+  subject {
+    kind = "User"
+    name = "console"
+  }
+}
+
+
