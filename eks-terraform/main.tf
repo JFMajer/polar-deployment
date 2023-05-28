@@ -189,7 +189,7 @@ module "eks" {
   ]
 
   # define retention in days for CloudWatch Logs
-  cloudwatch_log_group_retention_in_days = 2
+  cloudwatch_log_group_retention_in_days = 3
 
   cluster_addons = {
     coredns = {
@@ -206,6 +206,7 @@ module "eks" {
   cluster_version = "1.25"
   cluster_endpoint_private_access = true
   cluster_endpoint_public_access  = true
+  enable_irsa = true
 
   vpc_id = module.vpc.vpc_id
   subnet_ids                     = module.vpc.private_subnets
