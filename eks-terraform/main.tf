@@ -40,6 +40,17 @@ locals {
   app_name = "polar-bookstore"
   vpc_cidr = "10.23.0.0/16"
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
+  endpoints = {
+    "endpoint-ssm" = {
+      name = "ssm"
+    },
+    "endpoint-ssm-messages" = {
+      name = "ssmmessages"
+    },
+    "endpoint-ec2-messages" = {
+      name = "ec2messages"
+    },
+  }
 }
 
 //noinspection MissingModule
@@ -250,7 +261,6 @@ module "eks" {
 
     }
   }
-
 }
 
 
@@ -330,4 +340,31 @@ resource "aws_iam_role_policy_attachment" "admin" {
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
+#############################################
+# VPC Endpoint for SSM and SSM Messages     #
+#############################################
+
+resource "aws_vpc_endpoint" "ssm_endpoint" {
+  vpc_id       = module.vpc.vpc_id
+  for_each = local.endpoints
+  service_name = "com.amazonaws.#{AWS_REGION}#.${each.value.name}"
+  vpc_endpoint_type = "Interface"
+  security_group_ids = [aws_security_group.ssm.id]
+  subnet_ids = module.vpc.private_subnets
+}
+
+resource "aws_security_group" "ssm" {
+  name        = "${local.app_name}-ssm-#{ENV}#"
+  description = "Security group for SSM"
+
+  vpc_id = module.vpc.vpc_id
+
+  ingress {
+    description = "Allow SSM traffic from VPC"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [module.vpc.vpc_cidr_block]
+  }
+}
 
