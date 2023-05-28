@@ -302,22 +302,20 @@ module "eks_auth" {
 resource "aws_iam_role" "admin" {
   name = "${local.app_name}-admin-role-#{ENV}#"
   description = "Admin role that can be assumed by users"
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "AWS": data.aws_caller_identity.current.account_id
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          AWS = data.aws_caller_identity.current.account_id
+        }
       },
-      "Effect": "Allow",
-      "Sid": "",
-      "Condition": {}
-    }
-  ]
-}
-EOF
+    ]
+  })
 }
 
 resource "aws_iam_role_policy_attachment" "admin" {
