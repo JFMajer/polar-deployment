@@ -200,19 +200,6 @@ module "eks" {
 
   manage_aws_auth_configmap = true
 
-  aws_auth_roles = [
-    {
-      role_arn = aws_iam_role.jump_host.arn
-      username = "jump_host"
-      groups   = ["system:masters"]
-    },
-    {
-      role_arn = "#{CONSOLE_ROLE_ARN}#"
-      username = "console"
-      groups   = ["system:masters"]
-    },
-    ]
-
   eks_managed_node_group_defaults = {
     ami_type = "AL2_x86_64"
     iam_role_attach_cni_policy = true
@@ -222,7 +209,7 @@ module "eks" {
     default_node_group = {
       create_launch_template = false
       launch_template_name   = ""
-
+      name                   = "node-group-AL2"
       name = "node-group-1"
       capacity_type = "SPOT"
       instance_types = ["t3.small"]
@@ -241,6 +228,12 @@ module "eks" {
       iam_role_additional_policies = [
         "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
       ]
+
+        tags = {
+          "nodegroup-role" = "worker"
+          "instance-life-cycle" = "Ec2Spot"
+        }
+
     }
   }
 
