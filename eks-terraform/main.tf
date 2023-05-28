@@ -179,13 +179,15 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 18.0"
 
-  enabled_cluster_log_types = [
+  # define which logs to enable
+  cluster_enabled_log_types = [
     "api",
     "audit",
     "authenticator",
     "controllerManager",
     "scheduler"
   ]
+
   # define retention in days for CloudWatch Logs
   cloudwatch_log_retention_period = 1
 
