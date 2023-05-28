@@ -273,17 +273,6 @@ module "eks" {
       max_size     = 3
       desired_size = 2
 
-      create_iam_role          = true
-      iam_role_name            = "eks--node-group-bottlerocket"
-      iam_role_use_name_prefix = false
-      iam_role_description     = "EKS managed node group role for bottlerocket"
-      iam_role_tags = {
-        Purpose = "Protector of the kubelet"
-      }
-      iam_role_additional_policies = [
-        "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-      ]
-
       bottlerocket_add = {
         ami_type = "BOTTLEROCKET_x86_64"
         platform = "bottlerocket"
