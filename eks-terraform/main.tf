@@ -264,7 +264,7 @@ module "eks" {
     bottlerocket_default = {
       create_launch_template = false
       launch_template_name   = ""
-      name                   = "node-group-bottlerocket"
+      name                   = "bottlerocket-ng"
       capacity_type = "SPOT"
       ami_type = "BOTTLEROCKET_x86_64"
       platform = "bottlerocket"
