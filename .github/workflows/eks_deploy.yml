@@ -70,3 +70,9 @@ jobs:
       - name: Terraform Output
         working-directory: ${{ env.WORKING_DIR }}
         run: terraform output -json
+      - name: configure kubectl
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_REGION
+      - name: show auth-map
+        run: kubectl describe configmap -n kube-system aws-auth
