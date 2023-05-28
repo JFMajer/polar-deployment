@@ -311,7 +311,7 @@ resource "aws_iam_role" "admin" {
         Effect = "Allow"
         Sid    = ""
         Principal = {
-          AWS = data.aws_caller_identity.current.account_id
+          "AWS" = data.aws_caller_identity.current.account_id
         }
       },
     ]
