@@ -268,6 +268,7 @@ module "eks" {
       capacity_type = "SPOT"
       ami_type = "BOTTLEROCKET_x86_64"
       platform = "bottlerocket"
+      instance_types = ["t3.small", "t3.medium", "t3.large"]
 
       min_size     = 1
       max_size     = 3
@@ -280,6 +281,12 @@ module "eks" {
           effect = "PREFER_NO_SCHEDULE"
         }
       ]
+
+      tags = {
+        "nodegroup-role" = "worker"
+        "instance-life-cycle" = "Ec2Spot"
+        "Name" = "bottlerocket-ng"
+      }
 
       bottlerocket_add = {
         ami_type = "BOTTLEROCKET_x86_64"
