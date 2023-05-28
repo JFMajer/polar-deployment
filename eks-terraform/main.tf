@@ -260,6 +260,43 @@ module "eks" {
         }
 
     }
+
+    bottlerocket_default = {
+      create_launch_template = false
+      launch_template_name   = ""
+      name                   = "node-group-bottlerocket"
+      capacity_type = "SPOT"
+      ami_type = "BOTTLEROCKET_x86_64"
+      platform = "bottlerocket"
+
+      min_size     = 1
+      max_size     = 3
+      desired_size = 2
+
+      create_iam_role          = true
+      iam_role_name            = "eks-managed-node-group-complete-example"
+      iam_role_use_name_prefix = false
+      iam_role_description     = "EKS managed node group complete example role"
+      iam_role_tags = {
+        Purpose = "Protector of the kubelet"
+      }
+      iam_role_additional_policies = [
+        "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+      ]
+
+      bottlerocket_add = {
+        ami_type = "BOTTLEROCKET_x86_64"
+        platform = "bottlerocket"
+
+        # this will get added to what AWS provides
+        bootstrap_extra_args = <<-EOT
+      # extra args added
+      [settings.kernel]
+      lockdown = "integrity"
+      EOT
+      }
+    }
+
   }
 }
 
