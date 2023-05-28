@@ -291,6 +291,37 @@ module "eks_auth" {
       username = "console"
       groups = ["system:masters"]
     },
+    {
+        rolearn = aws_iam_role.admin.arn
+        username = "admin"
+        groups = ["system:masters"]
+    }
   ]
+}
+
+resource "aws_iam_role" "admin" {
+  name = "${local.app_name}-admin-role-#{ENV}#"
+  description = "Admin role that can be assumed by users"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "AWS": data.aws_caller_identity.current.account_id
+      },
+      "Effect": "Allow",
+      "Sid": "",
+      "Condition": {}
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "admin" {
+  role       = aws_iam_role.admin.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
