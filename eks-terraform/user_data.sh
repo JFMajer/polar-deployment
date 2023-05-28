@@ -6,6 +6,9 @@ yum update -y
 #install jq
 yum install -y jq
 
+#install git
+yum install -y git
+
 # enable ssm agent
 echo "export AWS_REGION=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)" >> /etc/bashrc
 echo "export AWS_DEFAULT_REGION=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)" >> /etc/bashrc
@@ -28,4 +31,5 @@ export CLUSTER_NAME=$(aws eks list-clusters --output text --query 'clusters[0]')
 
 #create kubeconfig command and store it in the file in home directory
 export AWS_REGION=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)
-aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_REGION >> /home/ssm-user/update_kubeconfig_command.txt
+aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_REGION"
+echo "aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_REGION" >> /home/ssm-user/update_kubeconfig_command.txt
